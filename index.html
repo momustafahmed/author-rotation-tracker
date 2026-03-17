@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Author Rotation Tracker – Research Sharks</title>
+  <meta name="description" content="Track and suggest fair authorship rotation for the Research Sharks Network." />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦈</text></svg>" />
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <nav class="top-bar">
+    <div class="top-bar-left">
+      <span class="logo">🦈</span>
+      <span class="app-name">Research Sharks</span>
+    </div>
+    <button class="theme-toggle" id="theme-toggle" title="Toggle theme">
+      <span class="toggle-icon">☀️</span>
+      <span class="toggle-label">Light</span>
+    </button>
+  </nav>
+
+  <div class="app-container">
+
+    <!-- Header -->
+    <header class="app-header">
+      <h1>Author Rotation</h1>
+      <p class="subtitle">Fair authorship, every paper.</p>
+    </header>
+
+    <!-- Next Suggestion -->
+    <section class="section animate-in" id="suggestion-section">
+      <div class="section-header">
+        <span class="section-title">Next Suggested Rotation</span>
+      </div>
+      <div id="suggestion-grid" class="suggestion-grid">
+        <!-- Filled by JS -->
+      </div>
+    </section>
+
+    <!-- Add Paper Form -->
+    <section class="section animate-in" id="form-section">
+      <div class="section-header">
+        <span class="section-title">New Paper</span>
+      </div>
+      <div class="form-card">
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label for="paper-title">Title</label>
+            <input type="text" id="paper-title" placeholder="Enter paper title…" />
+          </div>
+          <div class="form-group">
+            <label for="paper-date">Date</label>
+            <input type="date" id="paper-date" />
+          </div>
+          <div class="form-group">
+            <label for="paper-month">Month</label>
+            <select id="paper-month">
+              <option value="January">January</option>
+              <option value="February">February</option>
+              <option value="March">March</option>
+              <option value="April">April</option>
+              <option value="May">May</option>
+              <option value="June">June</option>
+              <option value="July">July</option>
+              <option value="August">August</option>
+              <option value="September">September</option>
+              <option value="October">October</option>
+              <option value="November">November</option>
+              <option value="December">December</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="select-first"><span class="role-indicator"></span>First Author</label>
+            <select id="select-first"></select>
+          </div>
+          <div class="form-group">
+            <label for="select-second"><span class="role-indicator"></span>Second Author</label>
+            <select id="select-second"></select>
+          </div>
+          <div class="form-group">
+            <label for="select-third"><span class="role-indicator"></span>Third Author</label>
+            <select id="select-third"></select>
+          </div>
+          <div class="form-group">
+            <label for="select-corresponding"><span class="role-indicator"></span>Corresponding Author</label>
+            <select id="select-corresponding"></select>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-primary" id="btn-add-paper">Add Paper</button>
+            <button class="btn btn-secondary" id="btn-reset">Reset All</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- History & Statistics -->
+    <section class="section animate-in" id="data-section">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="history">
+          Papers <span class="paper-count" id="paper-count">0</span>
+        </button>
+        <button class="tab-btn" data-tab="stats">Statistics</button>
+      </div>
+      <div id="history-content"></div>
+      <div id="stats-content" style="display:none;"></div>
+    </section>
+
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
