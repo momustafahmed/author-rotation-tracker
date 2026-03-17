@@ -339,29 +339,6 @@
     });
   }
 
-  let resetPending = false;
-
-  function resetData() {
-    if (!resetPending) {
-      resetPending = true;
-      const btn = document.getElementById('btn-reset');
-      btn.textContent = 'Click again to confirm';
-      btn.style.color = '#d44';
-      setTimeout(() => {
-        resetPending = false;
-        btn.textContent = 'Reset All';
-        btn.style.color = '';
-      }, 3000);
-      return;
-    }
-    resetPending = false;
-    papersRef.remove().then(() => {
-      const btn = document.getElementById('btn-reset');
-      btn.textContent = 'Reset All';
-      btn.style.color = '';
-      showToast('All data cleared');
-    });
-  }
 
   // --- Utilities ---
   function formatDate(dateStr) {
@@ -423,7 +400,6 @@
 
     // Buttons
     document.getElementById('btn-add-paper').addEventListener('click', addPaper);
-    document.getElementById('btn-reset').addEventListener('click', resetData);
     document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
 
     // Start listening for Firebase data (real-time sync)
