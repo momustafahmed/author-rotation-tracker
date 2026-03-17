@@ -1,10 +1,26 @@
 // =============================================
 // Author Rotation Tracker – Research Sharks
-// Clean start, no seed data
+// Firebase Realtime Database Integration
 // =============================================
 
 (function () {
   'use strict';
+
+  // --- Firebase Config ---
+  const firebaseConfig = {
+    apiKey: "AIzaSyAEV_2ORJCUW72OHPm5c-zM1nszsXnxXI4",
+    authDomain: "research-sharks.firebaseapp.com",
+    databaseURL: "https://research-sharks-default-rtdb.firebaseio.com",
+    projectId: "research-sharks",
+    storageBucket: "research-sharks.firebasestorage.app",
+    messagingSenderId: "800117133521",
+    appId: "1:800117133521:web:35f97dea5563a91b8cf5f0"
+  };
+
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  const papersRef = db.ref('papers');
 
   // --- Team & Roles ---
   const TEAM = [
@@ -19,34 +35,12 @@
     'July','August','September','October','November','December'
   ];
 
-  const STORAGE_KEY = 'sharks_papers';
   const THEME_KEY = 'sharks_theme';
-  const VERSION_KEY = 'sharks_version';
-  const CURRENT_VERSION = '2';  // bump to force-clear old data
 
   // --- State ---
   let papers = [];
   let currentTab = 'history';
-
-  // --- Persistence ---
-  function loadPapers() {
-    // Force-clear on version bump
-    const ver = localStorage.getItem(VERSION_KEY);
-    if (ver !== CURRENT_VERSION) {
-      localStorage.removeItem(STORAGE_KEY);
-      localStorage.setItem(VERSION_KEY, CURRENT_VERSION);
-    }
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      papers = JSON.parse(stored);
-    } else {
-      papers = [];
-    }
-  }
-
-  function savePapers() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(papers));
-  }
+  let firebaseReady = false;
 
   // --- Theme ---
   function initTheme() {
@@ -68,6 +62,35 @@
   function toggleTheme() {
     const current = document.documentElement.getAttribute('data-theme');
     applyTheme(current !== 'dark');
+  }
+
+  // --- Firebase Sync ---
+  function listenForPapers() {
+    papersRef.on('value', (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        // Convert Firebase object to sorted array
+        papers = Object.keys(data).map(key => ({
+          id: key,
+          ...data[key]
+        }));
+        // Sort by timestamp (oldest first)
+        papers.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+      } else {
+        papers = [];
+      }
+      firebaseReady = true;
+      renderAll();
+    });
+  }
+
+  function addPaperToFirebase(paper) {
+    const newRef = papersRef.push();
+    return newRef.set(paper);
+  }
+
+  function deletePaperFromFirebase(id) {
+    return papersRef.child(id).remove();
   }
 
   // --- Rotation Algorithm ---
@@ -145,6 +168,15 @@
     const container = document.getElementById('history-content');
     const countEl = document.getElementById('paper-count');
     if (countEl) countEl.textContent = papers.length;
+
+    if (!firebaseReady) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">⏳</div>
+          <p>Connecting to database…</p>
+        </div>`;
+      return;
+    }
 
     if (papers.length === 0) {
       container.innerHTML = `
@@ -281,28 +313,30 @@
     }
 
     const paper = {
-      id: 'p' + Date.now(),
       title,
       date: date || new Date().toISOString().split('T')[0],
       month,
-      roles
+      roles,
+      timestamp: Date.now()
     };
 
-    papers.push(paper);
-    savePapers();
-
-    document.getElementById('paper-title').value = '';
-    document.getElementById('paper-date').value = new Date().toISOString().split('T')[0];
-
-    renderAll();
-    showToast('Paper added ✓');
+    addPaperToFirebase(paper).then(() => {
+      document.getElementById('paper-title').value = '';
+      document.getElementById('paper-date').value = new Date().toISOString().split('T')[0];
+      showToast('Paper added ✓');
+    }).catch(err => {
+      showToast('Error saving — check connection');
+      console.error(err);
+    });
   }
 
   function deletePaper(id) {
-    papers = papers.filter(p => p.id !== id);
-    savePapers();
-    renderAll();
-    showToast('Paper removed');
+    deletePaperFromFirebase(id).then(() => {
+      showToast('Paper removed');
+    }).catch(err => {
+      showToast('Error removing — check connection');
+      console.error(err);
+    });
   }
 
   let resetPending = false;
@@ -321,13 +355,12 @@
       return;
     }
     resetPending = false;
-    papers = [];
-    savePapers();
-    renderAll();
-    const btn = document.getElementById('btn-reset');
-    btn.textContent = 'Reset All';
-    btn.style.color = '';
-    showToast('All data cleared');
+    papersRef.remove().then(() => {
+      const btn = document.getElementById('btn-reset');
+      btn.textContent = 'Reset All';
+      btn.style.color = '';
+      showToast('All data cleared');
+    });
   }
 
   // --- Utilities ---
@@ -361,7 +394,6 @@
   // --- Init ---
   function init() {
     initTheme();
-    loadPapers();
 
     // Build selects
     ['select-first', 'select-second', 'select-third', 'select-corresponding'].forEach(id => {
@@ -394,6 +426,10 @@
     document.getElementById('btn-reset').addEventListener('click', resetData);
     document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
 
+    // Start listening for Firebase data (real-time sync)
+    listenForPapers();
+
+    // Initial render (will show "Connecting..." until Firebase responds)
     renderAll();
   }
 
