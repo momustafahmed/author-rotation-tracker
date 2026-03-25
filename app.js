@@ -89,9 +89,7 @@
     return newRef.set(paper);
   }
 
-  function deletePaperFromFirebase(id) {
-    return papersRef.child(id).remove();
-  }
+
 
   // --- Rotation Algorithm ---
   function getNextSuggestion() {
@@ -201,7 +199,6 @@
               <th>2nd Author</th>
               <th>3rd Author</th>
               <th>Corresponding</th>
-              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -215,9 +212,6 @@
                 <td class="paper-author-cell">${p.roles.second}</td>
                 <td class="paper-author-cell">${p.roles.third}</td>
                 <td class="paper-author-cell">${p.roles.corresponding}</td>
-                <td class="actions-cell">
-                  <button class="btn btn-danger" onclick="app.deletePaper('${p.id}')" title="Remove">✕</button>
-                </td>
               </tr>
             `).join('')}
           </tbody>
@@ -330,14 +324,7 @@
     });
   }
 
-  function deletePaper(id) {
-    deletePaperFromFirebase(id).then(() => {
-      showToast('Paper removed');
-    }).catch(err => {
-      showToast('Error removing — check connection');
-      console.error(err);
-    });
-  }
+
 
 
   // --- Utilities ---
@@ -410,7 +397,7 @@
   }
 
   // Expose
-  window.app = { deletePaper };
+  window.app = {};
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
